@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\{Log, App};
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator as AdditionalValidator;
+use App\Rules\{Uppercase, RegistrationRule};
 
 
 class ValidatorTest extends TestCase
@@ -174,6 +175,86 @@ class ValidatorTest extends TestCase
         $rules=[
             "username" => "required|email|max:100",
             "password" => ["required","min:10","max:20"]
+        ];
+
+        $messages=[
+            "required" => ":attribute harus diisi",
+            "email" => ":attribute harus berupa email",
+            "min" => ":attribute minimal :min karakter",
+            "max" => ":attribute maximal :max karakter",
+        ];
+
+        $validator=Validator::make($data, $rules);
+        $validator->after(function(AdditionalValidator $validator){
+            $data=$validator->getData();
+            if($data["username"] == $data["password"]){
+                $validator->errors()->add("password", "Password tidak boleh sama dengan username.");
+            }
+        });
+
+        self::assertNotNull($validator);
+        
+        self::assertTrue($validator->fails());
+        self::assertFalse($validator->passes());
+
+        $message=$validator->getMessageBag();
+
+        Log::info($message->toJson(JSON_PRETTY_PRINT));
+    }
+
+    public function testValidatorCustomRule(){
+        App::setLocale("id");
+        
+        $data=[
+            "username" => "fajar",
+            "password" => "fajar"
+        ];
+
+        $rules=[
+            "username" => ["required","email","max:100", new Uppercase()],
+            "password" => ["required","min:10","max:20", new RegistrationRule()]
+        ];
+
+        $messages=[
+            "required" => ":attribute harus diisi",
+            "email" => ":attribute harus berupa email",
+            "min" => ":attribute minimal :min karakter",
+            "max" => ":attribute maximal :max karakter",
+        ];
+
+        $validator=Validator::make($data, $rules);
+        $validator->after(function(AdditionalValidator $validator){
+            $data=$validator->getData();
+            if($data["username"] == $data["password"]){
+                $validator->errors()->add("password", "Password tidak boleh sama dengan username.");
+            }
+        });
+
+        self::assertNotNull($validator);
+        
+        self::assertTrue($validator->fails());
+        self::assertFalse($validator->passes());
+
+        $message=$validator->getMessageBag();
+
+        Log::info($message->toJson(JSON_PRETTY_PRINT));
+    }
+
+    public function testValidatorCustomFunctionRule(){
+        App::setLocale("id");
+        
+        $data=[
+            "username" => "fajar",
+            "password" => "kepo"
+        ];
+
+        $rules=[
+            "username" => ["required","email","max:100", function(string $attribute, string $value, \Closure $fail){
+                if(strtoupper($value) != $value){
+                    $fail("The field $attribute mus be UPPERCASE");
+                }
+            }],
+            "password" => ["required","min:10","max:20", new RegistrationRule()]
         ];
 
         $messages=[
