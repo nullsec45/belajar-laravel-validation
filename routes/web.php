@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FormController;
+use App\Http\Controllers\{FormController, LoginController};
 
 /*
 |--------------------------------------------------------------------------
@@ -19,3 +19,6 @@ Route::get('/', function () {
 });
 
 Route::post("/form/login", [FormController::class, "login"]);
+
+Route::get("/form",[LoginController::class,"form"]);
+Route::post("/form",[LoginController::class,"submitForm"]);
