@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\{Request, Response};
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\{Log};
+use  App\Http\Requests\LoginRequest;
 
 class LoginController extends Controller
 {
@@ -10,11 +12,9 @@ class LoginController extends Controller
         return response()->view("form");
     }
 
-    public function submitForm(Request $request) : Response{
-        $request->validate([
-            "username" => "required",
-            "password" => "required"
-        ]);
+    public function submitForm(LoginRequest $request) : Response{
+        $data=$request->validated();
+        Log::info(json_encode($data, JSON_PRETTY_PRINT));
 
         return response("OK", Response::HTTP_OK);
     }
